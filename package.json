@@ -2,7 +2,7 @@
   "name": "sound-crime",
   "displayName": "Sound Crime",
   "scripts": {
-    "start": "node dist/index.js",
+    "start": "npm run build && node dist/index.js",
     "dev": "ts-node-dev --debug --respawn --transpile-only --clear index.ts",
     "build": "tsc",
     "prebuild": "rimraf dist"
