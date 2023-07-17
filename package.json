@@ -1,6 +1,7 @@
 {
   "name": "sound-crime",
   "displayName": "Sound Crime",
+  "main": "dist/index.js",
   "scripts": {
     "start": "npm run build && node dist/index.js",
     "dev": "ts-node-dev --debug --respawn --transpile-only --clear index.ts",
@@ -14,14 +15,16 @@
     "dotenv": "^16.3.1",
     "ffmpeg": "^0.0.4",
     "ffmpeg-static": "^5.1.0",
-    "ytdl-core": "^4.11.5"
+    "ytdl-core": "^4.11.5",
+    "rimraf": "^5.0.1",
+    "typescript": "^5.1.6"
   },
   "devDependencies": {
     "@types/node": "^20.4.2",
-    "rimraf": "^5.0.1",
-    "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
-    "tslib": "^2.6.0",
-    "typescript": "^5.1.6"
+    "tslib": "^2.6.0"
+  },
+  "engines": {
+    "node": "18.16.1"
   }
 }
