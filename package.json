@@ -3,8 +3,7 @@
   "displayName": "Sound Crime",
   "main": "dist/index.js",
   "scripts": {
-    "start": "npm run build && node dist/index.js",
-    "prestart": "npm install",
+    "start": "node dist/index.js",
     "dev": "ts-node-dev --debug --respawn --transpile-only --clear index.ts",
     "build": "tsc",
     "prebuild": "npx rimraf dist"
