@@ -389,7 +389,7 @@ client.on("interactionCreate", async (interaction) => {
         console.error(e);
       })
     if (!searchResult || !searchResult.tracks.length) return void interaction.followUp({ content: "No results were found!" });
-    // console.debug(searchResult.tracks);
+    console.debug(searchResult.tracks);
     const queue = await player.queues.create(interaction.guild, {
       metadata: interaction.channel
     });
