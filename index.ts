@@ -447,7 +447,7 @@ client.on("interactionCreate", async (interaction) => {
         console.error(e);
       })
     if (!searchResult || !searchResult.tracks.length) return void interaction.followUp({ content: "No results were found!" });
-    const selectedTrack = treatList(searchResult.tracks, query as string);
+    const selectedTracks = treatList(searchResult.tracks, query as string);
 
     const queue = await player.queues.create(interaction.guild, {
       metadata: interaction.channel
@@ -462,7 +462,7 @@ client.on("interactionCreate", async (interaction) => {
 
     await interaction.followUp({ content: `⏱ | Carregando a ${searchResult.playlist ? "playlist" : "musiquinha"}...` });
     try {
-      searchResult.playlist ? queue.addTrack(selectedTrack) : queue.addTrack(selectedTrack[0]);
+      searchResult.playlist ? queue.addTrack(selectedTracks) : queue.addTrack(selectedTracks[0]);
       if (!queue.isPlaying()) {
         queue.node.play();
       };
