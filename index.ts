@@ -253,10 +253,10 @@ player.events.on('emptyQueue', (queue) => {
   metadata.send('Acabou a fila!');
 });
 
-player.events.on('debug', (q, m) => {
-  console.log(`Player debug: ${m}`);
-  console.log(`Player queue: ${q.tracks.map(t => t.title).join(', ')}`);
-});
+// player.events.on('debug', (q, m) => {
+//   console.log(`Player debug: ${m}`);
+//   console.log(`Player queue: ${q.tracks.map(t => t.title).join(', ')}`);
+// });
 
 player.events.on('error', (queue, error) => {
   // Emitted when the player queue encounters error
