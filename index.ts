@@ -376,9 +376,10 @@ client.on("interactionCreate", async (interaction) => {
 
   if (interaction.commandName === "toca") {
     await interaction.deferReply();
-
+    console.info('Comando toca');
     const query = interaction.options.get("query").value;
     const parsedQuery = parseSpotifyUrl(query as string);
+    console.info('Procurando pela query', parsedQuery);
     const searchResult = await player
       .search(parsedQuery, {
         requestedBy: interaction.user,
