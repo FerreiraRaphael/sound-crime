@@ -6,6 +6,10 @@ git clone https://github.com/FerreiraRaphael/sound-crime
 
 cd sound-crime
 
-apt update && apt install sudo curl && curl -sL https://raw.githubusercontent.com/Unitech/pm2/master/packager/setup.deb.sh | sudo -E bash -
+nvm i
+
+nvm use
+
+npm install pm2 -g
 
 pm2 start ./scripts/prod.sh -n sound-crime --time
