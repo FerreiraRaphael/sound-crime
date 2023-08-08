@@ -15,13 +15,13 @@
     "dotenv": "^16.3.1",
     "ffmpeg": "^0.0.4",
     "ffmpeg-static": "^5.1.0",
-    "ytdl-core": "^4.11.5"
+    "play-dl": "^1.9.6"
   },
   "devDependencies": {
     "@types/node": "^20.4.2",
+    "rimraf": "^5.0.1",
     "ts-node-dev": "^2.0.0",
     "tslib": "^2.6.0",
-    "rimraf": "^5.0.1",
     "typescript": "^5.1.6"
   },
   "engines": {

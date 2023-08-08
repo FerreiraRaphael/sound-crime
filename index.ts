@@ -30,16 +30,30 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.Guilds,
     GatewayIntentBits.MessageContent,
-  ]
+  ],
 });
 client.login(config.token);
 client.once('ready', async () => {
   await player.extractors.loadDefault();
   console.log('TO ON');
 });
-client.on("error", console.error);
-client.on("warn", console.warn);
+client.on("error", (e) => {
+  console.log('Client error');
+  console.error(e);
+});
+client.on("warn", (m) => {
+  console.log('Client warning');
+  console.error(m);
+});
 const player = new Player(client);
+
+const parseSpotifyUrl = (url: string): string => {
+  const regex = /^(?:https:\/\/open\.spotify\.com\/(intl-([a-z]|[A-Z]){0,3}\/)?(?:user\/[A-Za-z0-9]+\/)?|spotify:)(album|playlist|track)(?:[/:])([A-Za-z0-9]+).*$/;
+  const match = url.match(regex);
+  if (!match) return url;
+  const [, , , type, id] = match;
+  return `https://open.spotify.com/${type}/${id}`;
+}
 
 const listButton = new ButtonBuilder().setLabel('🗒️ Playlist').setCustomId('list-button').setStyle(ButtonStyle.Secondary);
 const commands: ChatInputApplicationCommandData[] = [
@@ -239,6 +253,11 @@ player.events.on('emptyQueue', (queue) => {
   metadata.send('Acabou a fila!');
 });
 
+// player.events.on('debug', (q, m) => {
+//   console.log(`Player debug: ${m}`);
+//   console.log(`Player queue: ${q.tracks.map(t => t.title).join(', ')}`);
+// });
+
 player.events.on('error', (queue, error) => {
   // Emitted when the player queue encounters error
   console.log(`Deu pau geral: ${error.message}`);
@@ -368,15 +387,20 @@ client.on("interactionCreate", async (interaction) => {
 
   if (interaction.commandName === "toca") {
     await interaction.deferReply();
-
+    console.info('Comando toca');
     const query = interaction.options.get("query").value;
+    const parsedQuery = parseSpotifyUrl(query as string);
+    console.info('Procurando pela query', parsedQuery);
     const searchResult = await player
-      .search(query as string, {
+      .search(parsedQuery, {
         requestedBy: interaction.user,
       })
-      .catch(() => { })
+      .catch((e) => {
+        console.error('Erro na busca');
+        console.error(e);
+      })
     if (!searchResult || !searchResult.tracks.length) return void interaction.followUp({ content: "No results were found!" });
-
+    console.debug(searchResult.tracks);
     const queue = await player.queues.create(interaction.guild, {
       metadata: interaction.channel
     });
@@ -389,10 +413,15 @@ client.on("interactionCreate", async (interaction) => {
     }
 
     await interaction.followUp({ content: `⏱ | Carregando a ${searchResult.playlist ? "playlist" : "musiquinha"}...` });
-    searchResult.playlist ? queue.addTrack(searchResult.tracks) : queue.addTrack(searchResult.tracks[0]);
-    if (!queue.isPlaying()) {
-      queue.node.play();
-    };
+    try {
+      searchResult.playlist ? queue.addTrack(searchResult.tracks) : queue.addTrack(searchResult.tracks[0]);
+      if (!queue.isPlaying()) {
+        queue.node.play();
+      };
+    } catch (e) {
+      console.error('Erro ao tocar', e);
+      return void interaction.followUp({ content: "❌ | Deu pau! essa musica :(" });
+    }
     await interaction.deleteReply();
   }
 
