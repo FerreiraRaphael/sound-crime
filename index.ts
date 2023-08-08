@@ -30,7 +30,7 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.Guilds,
     GatewayIntentBits.MessageContent,
-  ]
+  ],
 });
 client.login(config.token);
 client.once('ready', async () => {
@@ -40,6 +40,14 @@ client.once('ready', async () => {
 client.on("error", console.error);
 client.on("warn", console.warn);
 const player = new Player(client);
+
+const parseSpotifyUrl = (url: string): string => {
+  const regex = /^(?:https:\/\/open\.spotify\.com\/(intl-([a-z]|[A-Z]){0,3}\/)?(?:user\/[A-Za-z0-9]+\/)?|spotify:)(album|playlist|track)(?:[/:])([A-Za-z0-9]+).*$/;
+  const match = url.match(regex);
+  if (!match) return url;
+  const [, , , type, id] = match;
+  return `https://open.spotify.com/${type}/${id}`;
+}
 
 const listButton = new ButtonBuilder().setLabel('🗒️ Playlist').setCustomId('list-button').setStyle(ButtonStyle.Secondary);
 const commands: ChatInputApplicationCommandData[] = [
@@ -370,13 +378,17 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.deferReply();
 
     const query = interaction.options.get("query").value;
+    const parsedQuery = parseSpotifyUrl(query as string);
     const searchResult = await player
-      .search(query as string, {
+      .search(parsedQuery, {
         requestedBy: interaction.user,
       })
-      .catch(() => { })
+      .catch((e) => {
+        console.error('Erro na busca');
+        console.error(e);
+      })
     if (!searchResult || !searchResult.tracks.length) return void interaction.followUp({ content: "No results were found!" });
-
+    // console.debug(searchResult.tracks);
     const queue = await player.queues.create(interaction.guild, {
       metadata: interaction.channel
     });
