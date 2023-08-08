@@ -37,8 +37,14 @@ client.once('ready', async () => {
   await player.extractors.loadDefault();
   console.log('TO ON');
 });
-client.on("error", console.error);
-client.on("warn", console.warn);
+client.on("error", (e) => {
+  console.log('Client error');
+  console.error(e);
+});
+client.on("warn", (m) => {
+  console.log('Client warning');
+  console.error(m);
+});
 const player = new Player(client);
 
 const parseSpotifyUrl = (url: string): string => {
@@ -245,6 +251,11 @@ player.events.on('emptyQueue', (queue) => {
   // Emitted when the player queue has finished
   const metadata = queue.metadata as TextChannel;
   metadata.send('Acabou a fila!');
+});
+
+player.events.on('debug', (q, m) => {
+  console.log(`Player debug: ${m}`);
+  console.log(`Player queue: ${q.tracks.map(t => t.title).join(', ')}`);
 });
 
 player.events.on('error', (queue, error) => {
