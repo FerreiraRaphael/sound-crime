@@ -21,7 +21,7 @@ import {
   Player,
   GuildQueue,
   usePlayer,
-  Track
+  Track,
 } from "discord-player";
 
 const client = new Client({
@@ -47,13 +47,60 @@ client.on("warn", (m) => {
 });
 const player = new Player(client);
 
+const pipe = <T>(...fns: ((arg: T) => T)[]) => (arg: T) => fns.reduce((acc, fn) => fn(acc), arg);
+
 const parseSpotifyUrl = (url: string): string => {
   const regex = /^(?:https:\/\/open\.spotify\.com\/(intl-([a-z]|[A-Z]){0,3}\/)?(?:user\/[A-Za-z0-9]+\/)?|spotify:)(album|playlist|track)(?:[/:])([A-Za-z0-9]+).*$/;
   const match = url.match(regex);
   if (!match) return url;
   const [, , , type, id] = match;
   return `https://open.spotify.com/${type}/${id}`;
+};
+
+const parseYoutubeUrl = (urlString: string): string => {
+  try {
+    const url = new URL(urlString);
+    if (!url.host.includes('youtube.com')) return urlString;
+    const searchParams = url.searchParams;
+    const videoId = searchParams.get('v');
+    const playlistId = searchParams.get('list');
+    if (playlistId) {
+      return `https://www.youtube.com/playlist?list=${playlistId}`;
+    }
+    if (videoId) {
+      return `https://www.youtube.com/watch?v=${videoId}`;
+    }
+  } catch {
+    return urlString;
+  }
+};
+
+const parseUrl = (url: string): string => {
+  return pipe(
+    parseSpotifyUrl,
+    parseYoutubeUrl,
+  )(url);
 }
+
+const treatYoutubeList = (userQuery: string) => (tracks: Track<{id: string}>[]): Track[] => {
+  try {
+    const track = tracks[0];
+    if (track?.playlist?.source !== 'youtube') { return tracks; }
+    const url = new URL(userQuery);
+    const searchParams = url.searchParams;
+    const playlistId = searchParams.get('list');
+    const videoId = searchParams.get('v');
+    if (!playlistId || !videoId) { return tracks; }
+    const videoIndex = tracks.findIndex((track) => track.metadata.id === videoId);
+    if (videoIndex === -1) { return tracks; }
+    const newTracks = tracks.slice(videoIndex);
+    return newTracks;
+  } catch {
+    return tracks;
+  }
+}
+
+const treatList = (tracks: Track[], userQuery: string) => pipe(treatYoutubeList(userQuery))(tracks);
 
 const listButton = new ButtonBuilder().setLabel('🗒️ Playlist').setCustomId('list-button').setStyle(ButtonStyle.Secondary);
 const commands: ChatInputApplicationCommandData[] = [
@@ -389,7 +436,7 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.deferReply();
     console.info('Comando toca');
     const query = interaction.options.get("query").value;
-    const parsedQuery = parseSpotifyUrl(query as string);
+    const parsedQuery = parseUrl(query as string);
     console.info('Procurando pela query', parsedQuery);
     const searchResult = await player
       .search(parsedQuery, {
@@ -400,7 +447,8 @@ client.on("interactionCreate", async (interaction) => {
         console.error(e);
       })
     if (!searchResult || !searchResult.tracks.length) return void interaction.followUp({ content: "No results were found!" });
-    console.debug(searchResult.tracks);
+    const selectedTrack = treatList(searchResult.tracks, query as string);
+
     const queue = await player.queues.create(interaction.guild, {
       metadata: interaction.channel
     });
@@ -414,7 +462,7 @@ client.on("interactionCreate", async (interaction) => {
 
     await interaction.followUp({ content: `⏱ | Carregando a ${searchResult.playlist ? "playlist" : "musiquinha"}...` });
     try {
-      searchResult.playlist ? queue.addTrack(searchResult.tracks) : queue.addTrack(searchResult.tracks[0]);
+      searchResult.playlist ? queue.addTrack(selectedTrack) : queue.addTrack(selectedTrack[0]);
       if (!queue.isPlaying()) {
         queue.node.play();
       };
