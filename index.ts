@@ -402,10 +402,15 @@ client.on("interactionCreate", async (interaction) => {
     }
 
     await interaction.followUp({ content: `⏱ | Carregando a ${searchResult.playlist ? "playlist" : "musiquinha"}...` });
-    searchResult.playlist ? queue.addTrack(searchResult.tracks) : queue.addTrack(searchResult.tracks[0]);
-    if (!queue.isPlaying()) {
-      queue.node.play();
-    };
+    try {
+      searchResult.playlist ? queue.addTrack(searchResult.tracks) : queue.addTrack(searchResult.tracks[0]);
+      if (!queue.isPlaying()) {
+        queue.node.play();
+      };
+    } catch (e) {
+      console.error('Erro ao tocar', e);
+      return void interaction.followUp({ content: "❌ | Deu pau! essa musica :(" });
+    }
     await interaction.deleteReply();
   }
 
