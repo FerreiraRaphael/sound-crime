@@ -10,7 +10,7 @@ export const commandStopInteraction = async (
     await interaction.deferReply();
     const queue = player.queues.get(interaction.guildId);
     if (!queue || !queue.isPlaying()) return void interaction.followUp({ content: "❌ | Nenhuma música tocando!" });
-    queue.delete();
+    queue.node.stop();
     return void interaction.followUp({ content: "🛑 | Parei de tocar!" });
   }
 

@@ -24,9 +24,16 @@ export const commandPlayInteraction = async (
       })
     if (!searchResult || !searchResult.tracks.length) return void interaction.followUp({ content: "No results were found!" });
     const selectedTracks = treatList(searchResult.tracks, query as string);
-
+    const SEGUNDO_1 = 1000;
+    const MINUTO_1 = 60 * SEGUNDO_1;
     const queue = await player.queues.create(interaction.guild, {
-      metadata: interaction.channel
+      metadata: interaction.channel,
+      leaveOnEmpty: true,
+      leaveOnEmptyCooldown: MINUTO_1 * 5,
+      leaveOnStop: true,
+      leaveOnEndCooldown: MINUTO_1 * 5,
+      leaveOnEnd: true,
+      leaveOnStopCooldown: MINUTO_1 * 5,
     });
 
     try {
